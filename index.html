@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI Hero's Journey — Teacher Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root{
+  --sky:#0f1729;
+  --sky2:#1a2744;
+  --star:#f8d84a;
+  --teal:#00d4c8;
+  --teal2:#00a89e;
+  --purple:#7c4dff;
+  --purple2:#5f35d4;
+  --pink:#ff4081;
+  --orange:#ff9100;
+  --green:#00e676;
+  --green2:#00c853;
+  --red:#ff5252;
+  --blue:#2979ff;
+  --card:#1e2f52;
+  --card2:#253662;
+  --border:rgba(255,255,255,0.1);
+  --text:#e8eeff;
+  --text2:#8fa4cc;
+  --r:14px;
+  --r2:22px;
+  --font:'Nunito',sans-serif;
+  --head:'Fredoka One',cursive;
+  --shadow:0 8px 32px rgba(0,0,0,0.4);
+  --glow-teal:0 0 20px rgba(0,212,200,0.4);
+  --glow-purple:0 0 20px rgba(124,77,255,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);color:var(--text);font-family:var(--font)}
+
+/* ═══════════════════════════════════════════
+   CANVAS / STARFIELD
+═══════════════════════════════════════════ */
+#starfield{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ═══════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════ */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .5s,transform .5s;
+  overflow-y:auto;padding:20px;
+}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(0.97)}
+
+/* ═══════════════════════════════════════════
+   WELCOME SCREEN
+═══════════════════════════════════════════ */
+#screen-welcome{background:radial-gradient(ellipse at 50% 30%,#1a2a5e 0%,var(--sky) 70%)}
+.welcome-hero{text-align:center;max-width:620px}
+.game-logo{
+  font-family:var(--head);font-size:clamp(36px,7vw,72px);
+  background:linear-gradient(135deg,var(--teal),var(--purple),var(--star));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;line-height:1.1;margin-bottom:8px;
+  filter:drop-shadow(0 4px 16px rgba(124,77,255,0.5));
+}
+.game-sub{font-size:clamp(14px,2.5vw,20px);color:var(--text2);margin-bottom:32px;font-weight:600}
+.hero-mascot{font-size:clamp(60px,12vw,110px);margin-bottom:20px;display:block;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 36px;border-radius:50px;border:none;cursor:pointer;
+  font-family:var(--font);font-size:18px;font-weight:800;
+  transition:all .2s;text-decoration:none;white-space:nowrap;
+}
+.btn-primary{background:linear-gradient(135deg,var(--teal),var(--purple));color:#fff;box-shadow:var(--glow-teal)}
+.btn-primary:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 8px 32px rgba(0,212,200,0.6)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--card);transform:translateY(-2px)}
+.btn-sm{padding:9px 22px;font-size:14px}
+.welcome-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.welcome-stats{display:flex;gap:24px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+.stat-pill{
+  background:rgba(255,255,255,0.07);border:1px solid var(--border);
+  border-radius:40px;padding:8px 20px;font-size:13px;color:var(--text2);
+  display:flex;align-items:center;gap:8px;
+}
+.stat-pill span{color:var(--teal);font-weight:800;font-size:16px}
+
+/* ═══════════════════════════════════════════
+   LEVEL SELECT SCREEN
+═══════════════════════════════════════════ */
+#screen-map{background:radial-gradient(ellipse at 50% 0%,#0d2450 0%,var(--sky) 60%)}
+.map-header{
+  width:100%;max-width:640px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;flex-wrap:wrap;gap:12px;
+}
+.map-title{font-family:var(--head);font-size:clamp(20px,4vw,30px);background:linear-gradient(135deg,var(--teal),var(--star));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.player-info{display:flex;align-items:center;gap:12px}
+.player-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid var(--teal);box-shadow:var(--glow-teal)}
+.player-name{font-weight:800;font-size:15px}
+.player-score{font-size:13px;color:var(--star);font-weight:700}
+
+/* Progress bar */
+.global-progress{width:100%;max-width:640px;margin-bottom:10px}
+.progress-track{
+  height:12px;background:rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;
+  border:1px solid var(--border);
+}
+.progress-fill{
+  height:100%;border-radius:8px;
+  background:linear-gradient(90deg,var(--teal),var(--purple),var(--star));
+  transition:width 0.8s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+}
+.progress-fill::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+  animation:shimmer 2s infinite;
+}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:5px;font-weight:700}
+
+.total-stars-row{
+  width:100%;max-width:640px;display:flex;justify-content:center;align-items:center;
+  gap:8px;margin-bottom:22px;font-size:14px;color:var(--star);font-weight:800;
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  border-radius:30px;padding:8px 18px;width:fit-content;
+}
+
+/* The level path itself — vertical, zig-zagging like Candy Crush / Duolingo */
+.level-path{
+  width:100%;max-width:520px;position:relative;
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 0 28px;
+}
+.level-card{
+  position:relative;width:100%;max-width:380px;
+  display:flex;align-items:center;gap:14px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:14px 18px;
+  margin-bottom:6px;
+  cursor:pointer;
+  transition:transform .25s,box-shadow .25s,border-color .25s,background .25s;
+  z-index:2;
+}
+/* zig-zag horizontal offset */
+.level-card:nth-child(odd){transform:translateX(-38px)}
+.level-card:nth-child(even){transform:translateX(38px)}
+.level-card:hover:not(.locked){box-shadow:0 14px 28px rgba(0,0,0,0.3)}
+.level-card:nth-child(odd):hover:not(.locked){transform:translateX(-38px) translateY(-3px) scale(1.02)}
+.level-card:nth-child(even):hover:not(.locked){transform:translateX(38px) translateY(-3px) scale(1.02)}
+
+/* connecting line between cards */
+.level-connector{
+  width:6px;height:54px;border-radius:6px;
+  background:rgba(255,255,255,0.12);
+  margin:-2px 0;z-index:1;
+}
+.level-connector.filled{background:linear-gradient(180deg,var(--teal),var(--purple))}
+
+.level-node{
+  position:relative;flex-shrink:0;width:60px;height:60px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;
+  background:linear-gradient(135deg,var(--node-a,#7c4dff),var(--node-b,#2979ff));
+  border:3px solid rgba(255,255,255,0.25);
+  box-shadow:0 6px 16px rgba(0,0,0,0.3);
+  transition:transform .3s;
+}
+.level-number{
+  position:absolute;top:-6px;left:-6px;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--sky2);border:2px solid var(--text);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;font-family:var(--font);
+}
+.level-info{flex:1;min-width:0}
+.level-title{font-family:var(--head);font-size:15px;margin-bottom:4px;line-height:1.25}
+.level-status{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.level-stars-mini{color:var(--star);font-size:13px;letter-spacing:1px}
+.level-checkmark{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:var(--green2);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;box-shadow:0 0 0 3px rgba(0,200,83,0.18);
+}
+
+/* Locked state */
+.level-card.locked{
+  opacity:0.5;cursor:not-allowed;background:rgba(255,255,255,0.02);
+}
+.level-card.locked .level-node{
+  filter:grayscale(1) brightness(0.7);
+}
+.level-card.locked .level-title{color:var(--text2)}
+.level-lock-icon{font-size:18px;flex-shrink:0;opacity:0.85}
+
+/* Active (current/playable, not yet completed) */
+.level-card.active{
+  border-color:rgba(0,212,200,0.8);
+  box-shadow:0 0 0 1px rgba(0,212,200,0.25),0 14px 28px rgba(0,0,0,0.25);
+  animation:pulse-border 2.2s infinite;
+}
+@keyframes pulse-border{0%,100%{box-shadow:0 0 0 1px rgba(0,212,200,0.24),0 14px 28px rgba(0,0,0,0.24)}50%{box-shadow:0 0 0 4px rgba(0,212,200,0.16),0 0 30px rgba(0,212,200,0.55)}}
+.level-card.active .level-node{animation:node-bob 2s ease-in-out infinite}
+@keyframes node-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* Completed (can replay) */
+.level-card.completed{
+  border-color:rgba(0,230,118,0.4);
+  background:rgba(0,230,118,0.05);
+}
+
+/* Unlock burst animation — applied briefly to a newly-unlocked card */
+.level-card.just-unlocked{animation:unlock-pop .7s cubic-bezier(.34,1.56,.64,1)}
+@keyframes unlock-pop{
+  0%{transform:scale(0.7) translateX(var(--zz,0));filter:brightness(2.2) saturate(1.6)}
+  50%{transform:scale(1.12) translateX(var(--zz,0))}
+  100%{transform:scale(1) translateX(var(--zz,0));filter:none}
+}
+.level-card.just-unlocked .level-node{animation:unlock-spin .7s ease-out}
+@keyframes unlock-spin{0%{transform:rotate(-25deg) scale(0.6)}60%{transform:rotate(8deg) scale(1.15)}100%{transform:rotate(0) scale(1)}}
+
+.map-caption{
+  width:100%;max-width:520px;text-align:center;margin-top:6px;
+  color:#c5d6e6;font-size:12.5px;line-height:1.5;
+}
+
+/* Badges row */
+.badges-shelf{
+  display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+  width:100%;max-width:900px;margin-top:16px;
+}
+.badge-chip{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.06);border:1px solid var(--border);
+  border-radius:30px;padding:6px 14px;font-size:12px;
+  transition:all .3s;
+}
+.badge-chip.earned{
+  background:rgba(0,212,200,0.15);border-color:var(--teal);
+  color:var(--teal);font-weight:700;
+  box-shadow:var(--glow-teal);
+}
+.badge-chip.earned .badge-icon{filter:none}
+.badge-icon{filter:grayscale(1) opacity(.4);font-size:18px}
+
+/* ═══════════════════════════════════════════
+   MISSION SCREEN (shared shell)
+═══════════════════════════════════════════ */
+#screen-mission{
+  background:radial-gradient(ellipse at 50% 0%,var(--mission-color,#1a2744) 0%,var(--sky) 70%);
+  align-items:stretch;justify-content:flex-start;padding:0;
+}
+.mission-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;background:rgba(0,0,0,0.3);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  flex-wrap:wrap;gap:8px;
+}
+.mission-title-bar{display:flex;align-items:center;gap:12px}
+.mission-icon-sm{font-size:28px}
+.mission-name{font-family:var(--head);font-size:clamp(16px,3vw,24px)}
+.mission-progress-mini{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.08);border-radius:30px;padding:6px 16px;
+}
+.mini-prog-track{width:100px;height:6px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden}
+.mini-prog-fill{height:100%;background:var(--teal);border-radius:4px;transition:width .5s}
+.mini-prog-label{font-size:12px;color:var(--text2);white-space:nowrap}
+.mission-body{
+  flex:1;overflow-y:auto;padding:24px;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+}
+.mission-instruction{
+  text-align:center;max-width:680px;
+}
+.mission-instruction h2{font-family:var(--head);font-size:clamp(20px,3.5vw,30px);margin-bottom:8px}
+.mission-instruction p{color:var(--text2);font-size:15px;line-height:1.6}
+
+/* ═══════════════════════════════════════════
+   DRAG + DROP SHARED
+═══════════════════════════════════════════ */
+.draggable{
+  cursor:grab;user-select:none;
+  transition:transform .2s,box-shadow .2s,opacity .2s;
+  touch-action:none;
+}
+.draggable:hover{transform:scale(1.04) rotate(-1deg);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.draggable.dragging{
+  opacity:0.4;transform:scale(0.95);cursor:grabbing;
+}
+.draggable.ghost{
+  position:fixed;pointer-events:none;z-index:9999;
+  opacity:0.9;transform:scale(1.08) rotate(2deg);
+  box-shadow:0 16px 48px rgba(0,0,0,0.5);
+}
+.drop-zone{
+  border:2.5px dashed rgba(255,255,255,0.2);
+  border-radius:var(--r2);
+  transition:all .25s;min-height:80px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+}
+.drop-zone.drag-over{
+  border-color:var(--teal);background:rgba(0,212,200,0.08);
+  box-shadow:var(--glow-teal);transform:scale(1.02);
+}
+.drop-zone.correct{border-color:var(--green);background:rgba(0,230,118,0.1)}
+.drop-zone.wrong{border-color:var(--red);background:rgba(255,82,82,0.1)}
+
+/* ═══════════════════════════════════════════
+   MISSION 1 — SCHOOL (Sort AI / Not AI)
+═══════════════════════════════════════════ */
+.sort-arena{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+  width:100%;max-width:800px;
+}
+.sort-zone{
+  border-radius:var(--r2);padding:20px;
+  background:var(--card);border:2.5px dashed var(--border);
+  min-height:260px;
+  display:flex;flex-direction:column;
+  transition:all .25s;
+}
+.sort-zone.drag-over{transform:scale(1.02)}
+.sort-zone-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:16px;font-family:var(--head);font-size:20px;
+}
+.sort-zone-header .zone-dot{
+  width:14px;height:14px;border-radius:50%;flex-shrink:0;
+}
+.sort-items{display:flex;flex-wrap:wrap;gap:8px;min-height:60px}
+.sort-card{
+  background:var(--card2);border:1.5px solid var(--border);
+  border-radius:10px;padding:8px 14px;
+  display:flex;align-items:center;gap:7px;
+  font-size:13px;font-weight:700;
+  transition:all .2s;
+}
+.sort-card-icon{font-size:20px}
+.cards-bank{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+  width:100%;max-width:800px;margin-bottom:8px;
+}
+
+/* ═══════════════════════════════════════════
+   MISSION 2 — CREATIVE STUDIO (Match scenarios to tools)
+═══════════════════════════════════════════ */
+.match-layout{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;
+  width:100%;max-width:900px;
+}
+.match-col h3{
+  font-family:var(--head);font-size:18px;margin-bottom:14px;
+  text-align:center;color:var(--text2);
+}
+.scenario-list,.tool-list{display:flex;flex-direction:column;gap:10px}
+.scenario-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:12px 16px;
+  font-size:13px;font-weight:600;line-height:1.4;
+  cursor:grab;transition:all .2s;
+  display:flex;align-items:center;gap:10px;
+  min-height:70px;box-sizing:border-box;
+}
+.scenario-card.matched{opacity:0.4;cursor:default;background:rgba(0,200,83,0.1);border-color:var(--green2)}
+.tool-card{
+  background:var(--card2);border:2px dashed var(--border);
+  border-radius:var(--r2);padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  transition:all .25s;min-height:70px;
+  position:relative;
+}
+.tool-card.drag-over{border-color:var(--teal);background:rgba(0,212,200,0.1);box-shadow:var(--glow-teal)}
+.tool-card.correct-match{border-color:var(--green);background:rgba(0,200,83,0.1);border-style:solid}
+.tool-card.wrong-match{border-color:var(--red);background:rgba(255,82,82,0.1);border-style:solid;animation:shake .4s}
+.tool-icon{font-size:32px;flex-shrink:0}
+.tool-info .tool-name{font-family:var(--head);font-size:15px}
+.tool-info .tool-hint{font-size:11px;color:var(--text2);margin-top:2px}
+.match-badge{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:22px;transition:all .3s;opacity:0;
+}
+.match-badge.show{opacity:1}
+
+/* ═══════════════════════════════════════════
+   MISSION 3 — PROMPT WORKSHOP (COSTAR)
+═══════════════════════════════════════════ */
+.prompt-layout{display:flex;flex-direction:column;gap:20px;width:100%;max-width:860px}
+.prompt-before-after{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.prompt-box{
+  background:var(--card);border-radius:var(--r2);
+  border:1.5px solid var(--border);padding:18px;
+}
+.prompt-box-label{
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.prompt-text{
+  font-size:13px;line-height:1.7;color:var(--text2);
+  font-family:monospace;
+}
+.prompt-token{
+  display:inline-block;
+  background:rgba(124,77,255,0.25);border:1.5px solid var(--purple);
+  border-radius:6px;padding:1px 8px;margin:1px;
+  color:var(--text);font-size:12px;font-weight:700;
+  transition:all .3s;
+}
+.prompt-token.placeholder{
+  background:rgba(255,255,255,0.05);border:1.5px dashed var(--border);
+  color:var(--text2);cursor:default;min-width:80px;text-align:center;
+}
+.prompt-token.filled{
+  background:rgba(0,212,200,0.2);border-color:var(--teal);color:var(--teal);
+}
+.costar-bank{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+  background:rgba(255,255,255,0.03);border-radius:var(--r2);
+  border:1px solid var(--border);padding:16px;
+}
+.costar-chip{
+  background:linear-gradient(135deg,var(--purple2),var(--purple));
+  border-radius:30px;padding:8px 16px;font-size:13px;font-weight:700;
+  cursor:grab;border:none;color:#fff;
+  display:flex;align-items:center;gap:6px;
+  transition:all .2s;box-shadow:0 4px 12px rgba(124,77,255,0.3);
+}
+.costar-chip:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 8px 24px rgba(124,77,255,0.5)}
+.costar-chip.used{opacity:0.35;cursor:default;transform:none}
+.costar-drop{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:90px;min-height:28px;
+  background:rgba(255,255,255,0.04);
+  border:2px dashed var(--border);border-radius:8px;
+  padding:2px 10px;font-size:12px;color:var(--text2);
+  transition:all .25s;vertical-align:middle;margin:2px;
+}
+.costar-drop.drag-over{border-color:var(--purple);background:rgba(124,77,255,0.15)}
+.costar-drop.filled{
+  border-style:solid;border-color:var(--teal);
+  background:rgba(0,212,200,0.12);color:var(--teal);font-weight:700;
+}
+.output-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.output-box{
+  background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);
+  padding:14px;font-size:12px;line-height:1.6;color:var(--text2);
+}
+.output-box.enhanced{border-color:var(--teal);background:rgba(0,212,200,0.07)}
+.output-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;color:var(--text2)}
+
+/* ═══════════════════════════════════════════
+   MISSION 4 — AI LAB (Match output to prompt quality)
+═══════════════════════════════════════════ */
+.lab-layout{width:100%;max-width:920px}
+.lab-outputs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.lab-output-card{
+  background:var(--card);border-radius:var(--r2);
+  border:2px solid var(--border);padding:16px;
+  cursor:grab;transition:all .2s;
+}
+.lab-output-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.lab-output-title{font-family:var(--head);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.lab-output-text{font-size:12px;color:var(--text2);line-height:1.6}
+.lab-quality-zones{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.quality-zone{
+  border:2.5px dashed var(--border);border-radius:var(--r2);
+  padding:16px;text-align:center;min-height:120px;
+  transition:all .25s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+}
+.quality-zone.drag-over{transform:scale(1.03);box-shadow:var(--glow-teal)}
+.lab-zone-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+.quality-label{font-family:var(--head);font-size:15px}
+.lab-clue-btn{
+  border:none;border-radius:999px;padding:7px 12px;cursor:pointer;
+  background:rgba(255,255,255,0.08);color:var(--text);font-size:11px;font-weight:800;
+  transition:all .2s;
+}
+.lab-clue-btn:hover{background:rgba(255,255,255,0.14);transform:translateY(-1px)}
+.lab-clue{
+  width:100%;border-radius:10px;padding:10px 12px;text-align:left;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  color:var(--text2);font-size:11px;line-height:1.55;
+  filter:blur(6px);opacity:0.85;transition:all .25s;
+}
+.lab-clue.revealed{filter:none;opacity:1;border-color:rgba(0,212,200,0.35);background:rgba(0,212,200,0.06)}
+.lab-zone-note{font-size:11px;color:var(--text2)}
+.quality-slot{
+  width:100%;min-height:70px;
+  background:rgba(255,255,255,0.03);border-radius:10px;
+  border:1.5px dashed rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--text2);transition:all .25s;
+}
+.quality-slot.filled-slot{border-style:solid;background:rgba(0,212,200,0.08)}
+
+/* ═══════════════════════════════════════════
+   MISSION 5 — SAFETY CENTER (falling items)
+═══════════════════════════════════════════ */
+#safety-arena{
+  width:100%;max-width:800px;
+  height:420px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.1) 100%);
+  border-radius:var(--r2);border:1.5px solid var(--border);
+}
+.falling-item{
+  position:absolute;border-radius:var(--r);
+  padding:10px 16px;font-size:12px;font-weight:700;
+  cursor:pointer;transition:transform .1s;
+  display:flex;align-items:center;gap:6px;
+  max-width:200px;text-align:center;line-height:1.3;
+  border:2px solid;
+  box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  animation:fall linear forwards;
+  user-select:none;
+}
+.falling-item.safe{
+  background:rgba(41,121,255,0.15);border-color:var(--blue);color:#dbe7ff;
+}
+.falling-item.unsafe{
+  background:rgba(41,121,255,0.15);border-color:var(--blue);color:#dbe7ff;
+}
+.falling-item:hover{transform:scale(1.05)}
+.falling-item.clicked-safe{animation:none!important;opacity:0;pointer-events:none}
+.falling-item.clicked-wrong{animation:shake .4s;background:rgba(255,82,82,0.3)}
+@keyframes fall{
+  0%{transform:translateY(-80px)}
+  100%{transform:translateY(440px)}
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-6px)}
+  80%{transform:translateX(6px)}
+}
+.safety-hud{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;max-width:800px;
+  background:var(--card);border-radius:var(--r);padding:12px 20px;
+  flex-wrap:wrap;gap:10px;
+}
+.safety-stat{display:flex;align-items:center;gap:8px;font-weight:700}
+.safety-lives{display:flex;gap:4px;font-size:22px}
+
+/* ═══════════════════════════════════════════
+   CELEBRATION SCREEN
+═══════════════════════════════════════════ */
+#screen-results{
+  background:radial-gradient(ellipse at 50% 30%,#1a2a5e,var(--sky));
+}
+.celebration-panel{
+  background:linear-gradient(135deg,var(--card),var(--card2));
+  border:2px solid var(--teal);border-radius:32px;
+  padding:40px;text-align:center;max-width:700px;width:100%;
+  box-shadow:0 0 60px rgba(0,212,200,0.2),var(--shadow);
+  position:relative;overflow:hidden;
+}
+.celebration-panel::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(0,212,200,0.02) 20px,rgba(0,212,200,0.02) 21px);
+  pointer-events:none;
+}
+.celebration-badge{font-size:86px;display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+.celebration-title{font-family:var(--head);font-size:clamp(28px,5vw,44px);background:linear-gradient(135deg,var(--teal),var(--star));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.celebration-subtitle{font-family:var(--head);font-size:clamp(18px,3vw,28px);color:var(--text);margin-bottom:16px}
+.celebration-message{color:var(--text2);font-size:16px;line-height:1.7;max-width:560px;margin:0 auto 22px}
+.celebration-points{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.celebration-point{background:rgba(255,255,255,0.06);border-radius:18px;padding:16px 12px;border:1px solid rgba(255,255,255,0.08)}
+.celebration-point .point-icon{font-size:28px;display:block;margin-bottom:8px}
+.celebration-point .point-title{font-family:var(--head);font-size:14px;margin-bottom:4px}
+.celebration-point .point-text{font-size:12px;color:var(--text2);line-height:1.5}
+.celebration-stars{font-size:34px;letter-spacing:4px;margin:10px 0 18px}
+.celebration-score{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.celebration-chip{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:8px 14px;font-size:12px;color:var(--text2)}
+.celebration-chip strong{color:var(--teal)}
+.result-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.celebration-btn{min-width:220px}
+
+/* ═══════════════════════════════════════════
+   MISSION COMPLETE OVERLAY
+═══════════════════════════════════════════ */
+.complete-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,0.75);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .4s;
+}
+.complete-overlay.show{opacity:1;pointer-events:all}
+.complete-card{
+  background:var(--card2);border:2px solid var(--teal);
+  border-radius:var(--r2);padding:40px;text-align:center;
+  max-width:460px;width:90%;
+  box-shadow:0 0 40px rgba(0,212,200,0.3);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+.complete-icon{font-size:70px;margin-bottom:12px;display:block;animation:float 2s ease-in-out infinite}
+.complete-title{font-family:var(--head);font-size:32px;margin-bottom:8px;color:var(--teal)}
+.complete-stars{font-size:40px;letter-spacing:6px;margin-bottom:16px}
+.complete-message{color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:24px}
+
+/* ═══════════════════════════════════════════
+   FEEDBACK TOASTS
+═══════════════════════════════════════════ */
+.toast{
+  position:fixed;z-index:1000;
+  top:80px;left:50%;transform:translateX(-50%) translateY(-20px);
+  background:var(--card2);border-radius:30px;border:1.5px solid var(--border);
+  padding:12px 24px;font-size:14px;font-weight:700;
+  transition:all .3s;opacity:0;white-space:nowrap;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:var(--shadow);pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.correct{border-color:var(--green);color:var(--green)}
+.toast.wrong{border-color:var(--red);color:var(--red)}
+.toast.info{border-color:var(--teal);color:var(--teal)}
+
+/* ═══════════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════════ */
+#confetti-canvas{
+  position:fixed;inset:0;z-index:800;
+  pointer-events:none;
+}
+
+/* ═══════════════════════════════════════════
+   SOUND TOGGLE + BACK BTN
+═══════════════════════════════════════════ */
+.sound-btn{
+  position:fixed;bottom:20px;right:20px;z-index:200;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:50%;width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:20px;transition:all .2s;
+  box-shadow:var(--shadow);
+}
+.sound-btn:hover{background:var(--card);transform:scale(1.1)}
+.back-btn{
+  position:fixed;top:80px;left:20px;z-index:200;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:30px;padding:8px 16px;
+  display:flex;align-items:center;gap:6px;
+  cursor:pointer;font-size:13px;font-weight:700;
+  transition:all .2s;box-shadow:var(--shadow);color:var(--text);
+  text-decoration:none;
+}
+.back-btn:hover{background:var(--card);transform:translateX(-3px)}
+
+/* ═══════════════════════════════════════════
+   NAME INPUT
+═══════════════════════════════════════════ */
+.name-form{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.name-input{
+  background:var(--card2);border:1.5px solid var(--border);
+  border-radius:30px;padding:12px 22px;
+  color:var(--text);font-family:var(--font);font-size:16px;font-weight:600;
+  outline:none;width:260px;transition:border-color .2s;
+}
+.name-input:focus{border-color:var(--teal);box-shadow:var(--glow-teal)}
+.name-input::placeholder{color:var(--text2)}
+
+/* ═══════════════════════════════════════════
+   REGISTRATION SCREEN
+═══════════════════════════════════════════ */
+#screen-register{background:radial-gradient(ellipse at 50% 30%,#1a2a5e 0%,var(--sky) 70%)}
+.register-card{
+  width:100%;max-width:440px;
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  border-radius:28px;padding:28px 26px 24px;
+  backdrop-filter:blur(6px);
+}
+.register-title{font-family:var(--head);font-size:clamp(22px,5vw,30px);text-align:center;margin-bottom:4px;
+  background:linear-gradient(135deg,var(--teal),var(--star));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.register-sub{text-align:center;color:var(--text2);font-size:13px;margin-bottom:20px}
+.reg-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;text-align:left}
+.reg-field label{font-size:12px;font-weight:800;color:var(--text2);letter-spacing:.02em}
+.reg-field input{
+  background:var(--card2);border:1.5px solid var(--border);
+  border-radius:14px;padding:12px 16px;
+  color:var(--text);font-family:var(--font);font-size:15px;font-weight:600;
+  outline:none;width:100%;transition:border-color .2s;
+}
+.reg-field input:focus{border-color:var(--teal);box-shadow:var(--glow-teal)}
+.reg-field input::placeholder{color:var(--text2);font-weight:500}
+.reg-field.error input{border-color:var(--red)}
+.reg-error-msg{font-size:11.5px;color:var(--red);min-height:14px}
+.reg-submit-row{margin-top:10px}
+.reg-submit-row .btn{width:100%;justify-content:center}
+.admin-link{
+  display:block;text-align:center;margin-top:18px;font-size:11px;
+  color:var(--text2);opacity:0.55;text-decoration:underline;cursor:pointer;
+  background:none;border:none;width:100%;font-family:var(--font);
+}
+.admin-link:hover{opacity:0.9}
+
+/* ═══════════════════════════════════════════
+   ADMIN SCREEN
+═══════════════════════════════════════════ */
+#screen-admin{background:radial-gradient(ellipse at 50% 0%,#0d2450 0%,var(--sky) 60%)}
+.admin-panel{width:100%;max-width:920px}
+.admin-login-card{
+  width:100%;max-width:360px;margin:0 auto;
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  border-radius:24px;padding:26px;text-align:center;
+}
+.admin-login-card .reg-field{margin-bottom:10px}
+.admin-header{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  margin-bottom:18px;
+}
+.admin-header h2{font-family:var(--head);font-size:24px}
+.admin-actions{display:flex;gap:10px;flex-wrap:wrap}
+.admin-table-wrap{
+  width:100%;overflow-x:auto;border:1px solid var(--border);border-radius:18px;
+  background:rgba(255,255,255,0.03);
+}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}
+.admin-table th,.admin-table td{
+  padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.admin-table th{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-empty{padding:30px;text-align:center;color:var(--text2);font-size:14px}
+.admin-count-pill{
+  background:rgba(255,255,255,0.07);border:1px solid var(--border);
+  border-radius:30px;padding:6px 16px;font-size:12px;color:var(--text2);
+}
+
+/* ═══════════════════════════════════════════
+   SUBMIT ROW
+═══════════════════════════════════════════ */
+.submit-row{display:flex;justify-content:center;margin-top:8px}
+
+/* ═══════════════════════════════════════════
+   LOADING SPINNER
+═══════════════════════════════════════════ */
+.spinner{
+  width:48px;height:48px;border:4px solid rgba(255,255,255,0.1);
+  border-top-color:var(--teal);border-radius:50%;
+  animation:spin 0.8s linear infinite;margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════════════
+   UTILITY
+═══════════════════════════════════════════ */
+.text-teal{color:var(--teal)}
+.text-star{color:var(--star)}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.text-purple{color:var(--purple)}
+.fw-800{font-weight:800}
+.mb-4{margin-bottom:4px}
+.mb-8{margin-bottom:8px}
+.mb-16{margin-bottom:16px}
+.hidden{display:none!important}
+.flex-center{display:flex;align-items:center;justify-content:center}
+.gap-8{gap:8px}
+.gap-12{gap:12px}
+.mt-auto{margin-top:auto}
+
+/* Responsive tweaks */
+@media(max-width:640px){
+  .sort-arena,.match-layout,.prompt-before-after,.output-compare,.lab-outputs,.lab-quality-zones,.cert-scores{grid-template-columns:1fr}
+  .map-grid{grid-template-columns:1fr 1fr}
+  .complete-stars{font-size:28px;letter-spacing:3px}
+  .register-card{padding:22px 18px 18px;border-radius:22px}
+  .level-card:nth-child(odd),.level-card:nth-child(even){transform:none}
+  .level-card:nth-child(odd):hover:not(.locked),.level-card:nth-child(even):hover:not(.locked){transform:translateY(-2px) scale(1.01)}
+  .level-card{max-width:100%;padding:12px 14px}
+  .level-node{width:50px;height:50px;font-size:22px}
+  .level-title{font-size:13.5px}
+  .admin-header{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:420px){
+  .screen{padding:14px}
+  .btn{padding:12px 24px;font-size:16px}
+  .welcome-btns{flex-direction:column;width:100%}
+  .welcome-btns .btn{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- STARFIELD -->
+<canvas id="starfield"></canvas>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- SOUND TOGGLE -->
+<button class="sound-btn" id="soundBtn" title="Toggle Sound">🔊</button>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════ SCREEN: REGISTRATION ═══════════════ -->
+<div class="screen" id="screen-register">
+  <div class="register-card">
+    <h1 class="register-title">🤖 AI Hero's Journey</h1>
+    <p class="register-sub">Please register before you begin your adventure!</p>
+
+    <div class="reg-field" id="regFieldName">
+      <label for="regFullName">Full Name</label>
+      <input id="regFullName" type="text" placeholder="e.g. Asha Shrestha" maxlength="60" autocomplete="name"/>
+      <div class="reg-error-msg" id="regErrName"></div>
+    </div>
+
+    <div class="reg-field" id="regFieldEmail">
+      <label for="regEmail">Email Address</label>
+      <input id="regEmail" type="email" placeholder="e.g. asha@email.com" maxlength="80" autocomplete="email"/>
+      <div class="reg-error-msg" id="regErrEmail"></div>
+    </div>
+
+    <div class="reg-field" id="regFieldSchool">
+      <label for="regSchool">School Name</label>
+      <input id="regSchool" type="text" placeholder="e.g. Rosewood School" maxlength="80" autocomplete="organization"/>
+      <div class="reg-error-msg" id="regErrSchool"></div>
+    </div>
+
+    <div class="reg-field" id="regFieldPhone">
+      <label for="regPhone">Contact Number</label>
+      <input id="regPhone" type="tel" placeholder="e.g. 98XXXXXXXX" maxlength="20" autocomplete="tel"/>
+      <div class="reg-error-msg" id="regErrPhone"></div>
+    </div>
+
+    <div class="reg-submit-row">
+      <button class="btn btn-primary" onclick="submitRegistration()">✅ Register &amp; Continue</button>
+    </div>
+    <button class="admin-link" onclick="showScreen('screen-admin');renderAdminLogin()">Admin</button>
+  </div>
+</div>
+
+<!-- ═══════════════ SCREEN: WELCOME ═══════════════ -->
+<div class="screen hidden" id="screen-welcome">
+  <div class="welcome-hero">
+    <span class="hero-mascot">🤖</span>
+    <h1 class="game-logo">AI Hero's Journey</h1>
+    <p class="game-sub">Teacher Edition · AI Literacy Adventure</p>
+    <p id="welcomeGreeting" style="font-size:17px;font-weight:700;margin-top:6px;color:var(--star)"></p>
+    <input type="hidden" id="playerNameInput" maxlength="60"/>
+    <div class="welcome-btns" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="startGame()">🚀 Begin Adventure</button>
+      <button class="btn btn-secondary" onclick="showHowToPlay()">📖 How to Play</button>
+    </div>
+    <div class="welcome-stats">
+      <div class="stat-pill"><span>5</span> Missions</div>
+      <div class="stat-pill"><span>5</span> Badges</div>
+      <div class="stat-pill"><span>1</span> Celebration</div>
+    </div>
+    <p style="margin-top:16px;font-size:12px;color:var(--text2)">Designed for Teachers · Grades don't matter, learning does ✨</p>
+  </div>
+</div>
+
+<!-- ═══════════════ SCREEN: LEVEL SELECT ═══════════════ -->
+<div class="screen hidden" id="screen-map">
+  <div class="map-header">
+    <h1 class="map-title">🎮 Level Select</h1>
+    <div class="player-info">
+      <div class="player-avatar" id="mapAvatar">🤖</div>
+      <div>
+        <div class="player-name" id="mapPlayerName">Hero</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="global-progress">
+    <div class="progress-track"><div class="progress-fill" id="globalProgress" style="width:0%"></div></div>
+    <div class="progress-label"><span id="progressLevelsLabel">0 of 5 Levels Completed</span><span id="progressPct">0%</span></div>
+  </div>
+
+  <div class="total-stars-row">⭐ Total Stars: <span id="mapScore">0</span></div>
+
+  <div class="level-path" id="levelPath">
+    <!-- level cards injected by JS -->
+  </div>
+
+  <p class="map-caption">Complete a level to unlock the next one. Replay any level you've already finished to improve your stars.</p>
+
+  <div class="badges-shelf" id="badgesShelf" style="margin-top:20px">
+    <!-- badges injected by JS -->
+  </div>
+</div>
+
+<!-- ═══════════════ SCREEN: MISSION ═══════════════ -->
+<div class="screen hidden" id="screen-mission">
+  <div class="mission-topbar">
+    <div class="mission-title-bar">
+      <button class="btn btn-secondary btn-sm" onclick="goToMap()" style="padding:6px 14px;font-size:12px">← Map</button>
+      <span class="mission-icon-sm" id="missionIconSm"></span>
+      <span class="mission-name" id="missionNameSm"></span>
+    </div>
+    <div class="mission-progress-mini">
+      <div class="mini-prog-track"><div class="mini-prog-fill" id="miniProgFill" style="width:0%"></div></div>
+      <span class="mini-prog-label" id="miniProgLabel">0 / 0</span>
+    </div>
+  </div>
+  <div class="mission-body" id="missionBody">
+    <!-- Mission content injected here -->
+  </div>
+</div>
+
+<!-- ═══════════════ SCREEN: RESULTS ═══════════════ -->
+<div class="screen hidden" id="screen-results">
+  <div class="celebration-panel" id="celebrationPanel">
+    <span class="celebration-badge" id="celebrationBadge">🎉</span>
+    <div class="celebration-title" id="celebrationTitle">You Nailed the Journey</div>
+    <div class="celebration-subtitle" id="celebrationSubtitle">AI confidence unlocked</div>
+    <p class="celebration-message" id="celebrationMessage"></p>
+    <div class="celebration-points">
+      <div class="celebration-point">
+        <span class="point-icon">🧠</span>
+        <div class="point-title">Prompt thinking</div>
+        <div class="point-text">You learned how context, role, and structure change AI results.</div>
+      </div>
+      <div class="celebration-point">
+        <span class="point-icon">🎯</span>
+        <div class="point-title">Better choices</div>
+        <div class="point-text">You practiced spotting useful outputs, safe habits, and effective prompting.</div>
+      </div>
+      <div class="celebration-point">
+        <span class="point-icon">🏅</span>
+        <div class="point-title">Mission complete</div>
+        <div class="point-text">You finished the full journey and earned your place as an AI-ready educator.</div>
+      </div>
+    </div>
+    <div class="celebration-stars" id="celebrationStars">⭐⭐⭐⭐⭐</div>
+    <div class="celebration-score" id="celebrationStats"></div>
+    <div class="result-btns">
+      <button class="btn btn-primary celebration-btn" onclick="restartGame()">🔄 Play Again</button>
+      <button class="btn btn-secondary celebration-btn" onclick="goToMap()">🗺 Back to Map</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCREEN: ADMIN ═══════════════ -->
+<div class="screen hidden" id="screen-admin">
+  <div class="admin-panel" id="adminPanel"></div>
+</div>
+
+<!-- MISSION COMPLETE OVERLAY -->
+<div class="complete-overlay" id="completeOverlay">
+  <div class="complete-card">
+    <span class="complete-icon" id="completeIcon">🎉</span>
+    <div class="complete-title" id="completeTitle">Mission Complete!</div>
+    <div class="complete-stars" id="completeStars">⭐⭐⭐</div>
+    <p class="complete-message" id="completeMessage"></p>
+    <button class="btn btn-primary" id="completeContinueBtn" onclick="dismissComplete()">Continue Journey →</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   STARFIELD
+═══════════════════════════════════════════════════════ */
+(function(){
+  const c=document.getElementById('starfield');
+  const ctx=c.getContext('2d');
+  let stars=[];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;createStars()}
+  function createStars(){
+    stars=[];
+    for(let i=0;i<180;i++){
+      stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.8+.3,a:Math.random(),da:(.003+Math.random()*.006)*(Math.random()<.5?1:-1)});
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{
+      s.a+=s.da;if(s.a<=0||s.a>=1)s.da*=-1;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);
+  resize();draw();
+})();
+
+/* ═══════════════════════════════════════════════════════
+   AUDIO (Web Audio API — no files needed)
+═══════════════════════════════════════════════════════ */
+const Audio={
+  ctx:null,muted:false,
+  init(){if(!this.ctx)this.ctx=new(window.AudioContext||window.webkitAudioContext)()},
+  play(type){
+    if(this.muted)return;
+    try{
+      this.init();
+      const o=this.ctx.createOscillator();
+      const g=this.ctx.createGain();
+      o.connect(g);g.connect(this.ctx.destination);
+      const now=this.ctx.currentTime;
+      const configs={
+        correct:{freq:523,freq2:659,dur:.25,type:'sine'},
+        wrong:{freq:200,freq2:180,dur:.3,type:'sawtooth'},
+        drop:{freq:440,freq2:440,dur:.1,type:'sine'},
+        complete:{freq:523,freq2:784,dur:.5,type:'sine'},
+        click:{freq:380,freq2:380,dur:.08,type:'sine'},
+        badge:{freq:659,freq2:880,dur:.4,type:'triangle'},
+      };
+      const c=configs[type]||configs.click;
+      o.type=c.type;
+      o.frequency.setValueAtTime(c.freq,now);
+      o.frequency.linearRampToValueAtTime(c.freq2,now+c.dur);
+      g.gain.setValueAtTime(.15,now);
+      g.gain.exponentialRampToValueAtTime(.001,now+c.dur);
+      o.start(now);o.stop(now+c.dur);
+    }catch(e){}
+  },
+  toggle(){this.muted=!this.muted;document.getElementById('soundBtn').textContent=this.muted?'🔇':'🔊'}
+};
+document.getElementById('soundBtn').addEventListener('click',()=>Audio.toggle());
+
+/* ═══════════════════════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════════════════════ */
+const Confetti=(()=>{
+  const c=document.getElementById('confetti-canvas');
+  const ctx=c.getContext('2d');
+  let pieces=[],running=false;
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  window.addEventListener('resize',()=>{c.width=window.innerWidth;c.height=window.innerHeight});
+  const COLORS=['#f8d84a','#00d4c8','#7c4dff','#ff4081','#00e676','#2979ff','#ff9100'];
+  function spawn(){
+    for(let i=0;i<90;i++){
+      pieces.push({
+        x:Math.random()*c.width,y:-20,
+        r:Math.random()*8+4,
+        color:COLORS[Math.floor(Math.random()*COLORS.length)],
+        vx:(Math.random()-0.5)*6,vy:Math.random()*4+3,
+        rotation:Math.random()*360,vr:(Math.random()-0.5)*8,
+        shape:Math.random()<.5?'rect':'circle',
+        life:1
+      });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    pieces=pieces.filter(p=>p.y<c.height+30&&p.life>0);
+    pieces.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.rotation+=p.vr;p.life-=.006;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rotation*Math.PI/180);
+      ctx.globalAlpha=p.life;ctx.fillStyle=p.color;
+      if(p.shape==='rect'){ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2)}
+      else{ctx.beginPath();ctx.arc(0,0,p.r/2,0,Math.PI*2);ctx.fill()}
+      ctx.restore();
+    });
+    if(running||pieces.length>0)requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,c.width,c.height);
+  }
+  return{
+    burst(){running=true;spawn();draw();setTimeout(()=>{running=false},3000)}
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg,type='info',duration=2200){
+  const t=document.getElementById('toast');
+  t.className='toast '+type;t.innerHTML=msg;
+  clearTimeout(toastTimer);
+  requestAnimationFrame(()=>{t.classList.add('show')});
+  toastTimer=setTimeout(()=>t.classList.remove('show'),duration);
+}
+
+function shuffle(items){
+  const next=items.slice();
+  for(let i=next.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [next[i],next[j]]=[next[j],next[i]];
+  }
+  return next;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SCREEN TRANSITIONS
+═══════════════════════════════════════════════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.add('hidden');
+  });
+  const target=document.getElementById(id);
+  target.classList.remove('hidden');
+}
+
+/* ═══════════════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════════════ */
+const MISSIONS=[
+  {id:'school',name:'AI or Not?',icon:'🏫',color:'#7c4dff',nodeA:'#7c4dff',nodeB:'#2979ff',desc:'Sort what is and isn\'t AI'},
+  {id:'studio',name:'Choose the Right AI Tool',icon:'🎨',color:'#ff4081',nodeA:'#ff4081',nodeB:'#ff9100',desc:'Match scenarios to AI tools'},
+  {id:'prompt',name:'Prompt Rescue',icon:'✍️',color:'#00d4c8',nodeA:'#00d4c8',nodeB:'#00a89e',desc:'Build better prompts with COSTAR'},
+  {id:'lab',name:'Output Detective',icon:'🔬',color:'#f8d84a',nodeA:'#f8d84a',nodeB:'#ff9100',desc:'Match outputs to prompt quality'},
+  {id:'safety',name:'Safety Center',icon:'🛡️',color:'#00e676',nodeA:'#00e676',nodeB:'#00c853',desc:'Catch responsible AI behaviors'},
+];
+const BADGES=[
+  {id:'school',icon:'🎓',name:'AI Detector'},
+  {id:'studio',icon:'🎨',name:'Creative Master'},
+  {id:'prompt',icon:'✍️',name:'Prompt Pro'},
+  {id:'lab',icon:'🔬',name:'Quality Analyst'},
+  {id:'safety',icon:'🛡️',name:'AI Guardian'},
+];
+
+let state={
+  player:'Hero',stars:{},badges:[],currentMission:null,
+  missionScores:{},totalStars:0
+};
+
+function loadState(){
+  // Intentionally does nothing: progress is per-session only.
+  // Every page refresh should start a brand-new player with Level 1
+  // unlocked and everything else locked, so we never read saved
+  // progress back in from a previous player's session.
+}
+function saveState(){
+  // Intentionally does nothing persistent: state already lives in the
+  // in-memory `state` object for the duration of this page session,
+  // which is all that's needed for one player's playthrough.
+  // No localStorage write means a refresh always resets the game
+  // instead of carrying over the previous player's unlocked levels.
+}
+
+/* ═══════════════════════════════════════════════════════
+   WELCOME / START
+═══════════════════════════════════════════════════════ */
+function startGame(){
+  const n=document.getElementById('playerNameInput').value.trim();
+  if(n) state.player=n;
+  saveState();
+  Audio.play('click');
+  showScreen('screen-map');
+  renderMap();
+}
+
+function showHowToPlay(){
+  showToast('🎮 Drag items to complete each mission. Click parts of the screen to interact. Earn ⭐ stars and 🏅 badges to unlock the celebration page!','info',4000);
+}
+
+function restartGame(){
+  state.stars={};state.badges=[];state.missionScores={};state.totalStars=0;
+  saveState();
+  showScreen('screen-welcome');
+  document.getElementById('playerNameInput').value=state.player;
+}
+
+/* ═══════════════════════════════════════════════════════
+   REGISTRATION  (persists across refreshes — this is the
+   admin's player log, separate from in-session game progress)
+═══════════════════════════════════════════════════════ */
+const REG_STORAGE_KEY='ai-hero-registrations';
+const ADMIN_PASSWORD='aihero2026'; // change this to your own password
+
+function getRegistrations(){
+  try{
+    const raw=localStorage.getItem(REG_STORAGE_KEY);
+    return raw?JSON.parse(raw):[];
+  }catch(e){return []}
+}
+function saveRegistrations(list){
+  try{localStorage.setItem(REG_STORAGE_KEY,JSON.stringify(list))}catch(e){}
+}
+
+function clearRegFieldErrors(){
+  ['Name','Email','School','Phone'].forEach(f=>{
+    document.getElementById('regField'+f).classList.remove('error');
+    document.getElementById('regErr'+f).textContent='';
+  });
+}
+function setRegFieldError(field,msg){
+  document.getElementById('regField'+field).classList.add('error');
+  document.getElementById('regErr'+field).textContent=msg;
+}
+
+function submitRegistration(){
+  clearRegFieldErrors();
+  const fullName=document.getElementById('regFullName').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const school=document.getElementById('regSchool').value.trim();
+  const phone=document.getElementById('regPhone').value.trim();
+
+  let valid=true;
+  if(!fullName){setRegFieldError('Name','Please enter your full name.');valid=false}
+  const emailPattern=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!email){setRegFieldError('Email','Please enter your email address.');valid=false}
+  else if(!emailPattern.test(email)){setRegFieldError('Email','Please enter a valid email address.');valid=false}
+  if(!school){setRegFieldError('School','Please enter your school name.');valid=false}
+  const phoneDigits=phone.replace(/[^0-9]/g,'');
+  if(!phone){setRegFieldError('Phone','Please enter your contact number.');valid=false}
+  else if(phoneDigits.length<7||phoneDigits.length>15){setRegFieldError('Phone','Please enter a valid contact number.');valid=false}
+
+  if(!valid){
+    Audio.play('wrong');
+    return;
+  }
+
+  const record={
+    id:'reg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+    fullName,email,school,phone,
+    registeredAt:new Date().toISOString(),
+  };
+  const list=getRegistrations();
+  list.push(record);
+  saveRegistrations(list);
+
+  state.player=fullName;
+  document.getElementById('playerNameInput').value=fullName;
+  document.getElementById('welcomeGreeting').textContent=`Welcome, ${fullName}! 👋`;
+
+  Audio.play('click');
+  showScreen('screen-welcome');
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN PANEL
+═══════════════════════════════════════════════════════ */
+function renderAdminLogin(){
+  const panel=document.getElementById('adminPanel');
+  panel.innerHTML=`
+    <div class="admin-login-card">
+      <h2 style="font-family:var(--head);font-size:22px;margin-bottom:6px">🔐 Admin Login</h2>
+      <p style="font-size:12.5px;color:var(--text2);margin-bottom:16px">This area is for the game owner only.</p>
+      <div class="reg-field" id="adminPwField">
+        <input id="adminPwInput" type="password" placeholder="Enter admin password" autocomplete="off"/>
+        <div class="reg-error-msg" id="adminPwErr"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px" onclick="adminLogin()">Unlock Admin Panel</button>
+      <button class="admin-link" onclick="showScreen('screen-register')">← Back to Registration</button>
+    </div>
+  `;
+  document.getElementById('adminPwInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter')adminLogin();
+  });
+}
+
+function adminLogin(){
+  const pw=document.getElementById('adminPwInput').value;
+  if(pw===ADMIN_PASSWORD){
+    Audio.play('click');
+    renderAdminTable();
+  }else{
+    document.getElementById('adminPwErr').textContent='Incorrect password.';
+    Audio.play('wrong');
+  }
+}
+
+function renderAdminTable(){
+  const panel=document.getElementById('adminPanel');
+  const list=getRegistrations().slice().reverse(); // newest first
+
+  let rowsHtml='';
+  if(list.length===0){
+    rowsHtml=`<div class="admin-empty">No registrations yet. Once players register, they'll show up here.</div>`;
+  }else{
+    rowsHtml=`
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>#</th><th>Full Name</th><th>Email</th><th>School</th><th>Contact Number</th><th>Registered At</th></tr>
+          </thead>
+          <tbody>
+            ${list.map((r,i)=>`
+              <tr>
+                <td>${list.length-i}</td>
+                <td>${escapeHtml(r.fullName)}</td>
+                <td>${escapeHtml(r.email)}</td>
+                <td>${escapeHtml(r.school)}</td>
+                <td>${escapeHtml(r.phone)}</td>
+                <td>${new Date(r.registeredAt).toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  panel.innerHTML=`
+    <div class="admin-header">
+      <h2>📋 Registered Players</h2>
+      <div class="admin-actions">
+        <span class="admin-count-pill">${list.length} total</span>
+        <button class="btn btn-secondary btn-sm" onclick="exportRegistrationsToExcel()">📥 Export to Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearAllRegistrations()">🗑 Clear All</button>
+        <button class="btn btn-secondary btn-sm" onclick="showScreen('screen-register')">← Back</button>
+      </div>
+    </div>
+    ${rowsHtml}
+  `;
+}
+
+function escapeHtml(str){
+  const div=document.createElement('div');
+  div.textContent=str==null?'':String(str);
+  return div.innerHTML;
+}
+
+function exportRegistrationsToExcel(){
+  const list=getRegistrations();
+  if(list.length===0){
+    showToast('No registrations to export yet.','info',2500);
+    return;
+  }
+  if(typeof XLSX==='undefined'){
+    showToast('Excel export needs an internet connection to load the export library.','info',3500);
+    return;
+  }
+  const rows=list.map((r,i)=>({
+    '#':i+1,
+    'Full Name':r.fullName,
+    'Email':r.email,
+    'School':r.school,
+    'Contact Number':r.phone,
+    'Registered At':new Date(r.registeredAt).toLocaleString(),
+  }));
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Registrations');
+  const stamp=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb,`ai-hero-registrations-${stamp}.xlsx`);
+}
+
+function clearAllRegistrations(){
+  if(!confirm('This will permanently delete all registered player data on this device. Continue?'))return;
+  saveRegistrations([]);
+  renderAdminTable();
+  showToast('All registration data cleared.','info',2500);
+}
+
+function isMissionUnlocked(missionId){
+  const idx=MISSIONS.findIndex(m=>m.id===missionId);
+  if(idx<0)return false;
+  if(idx===0)return true;
+  // Every earlier level must be completed — not just the one right before it.
+  for(let i=0;i<idx;i++){
+    if(state.stars[MISSIONS[i].id]===undefined)return false;
+  }
+  return true;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LEVEL SELECT
+═══════════════════════════════════════════════════════ */
+let lastUnlockedSnapshot=null;
+
+function renderMap(){
+  document.getElementById('mapPlayerName').textContent=state.player;
+  const total=MISSIONS.reduce((a,m)=>a+(state.stars[m.id]||0),0);
+  state.totalStars=total;
+  document.getElementById('mapScore').textContent=total;
+
+  const completedCount=Object.keys(state.stars).length;
+  const pct=Math.round((completedCount/MISSIONS.length)*100);
+  document.getElementById('globalProgress').style.width=pct+'%';
+  document.getElementById('progressPct').textContent=pct+'%';
+  document.getElementById('progressLevelsLabel').textContent=`${completedCount} of ${MISSIONS.length} Levels Completed`;
+
+  // figure out which ids just became unlocked since the last render,
+  // so we can play the unlock-pop animation on them
+  const currentlyUnlocked=new Set(MISSIONS.filter(m=>isMissionUnlocked(m.id)).map(m=>m.id));
+  const newlyUnlocked=new Set();
+  if(lastUnlockedSnapshot){
+    currentlyUnlocked.forEach(id=>{ if(!lastUnlockedSnapshot.has(id)) newlyUnlocked.add(id); });
+  }
+  lastUnlockedSnapshot=currentlyUnlocked;
+
+  const path=document.getElementById('levelPath');
+  path.innerHTML='';
+
+  MISSIONS.forEach((m,idx)=>{
+    const unlocked=isMissionUnlocked(m.id);
+    const done=state.stars[m.id]!==undefined;
+    const active=unlocked&&!done;
+    const locked=!unlocked;
+    const stars=state.stars[m.id]||0;
+
+    if(idx>0){
+      const connector=document.createElement('div');
+      connector.className='level-connector'+(isMissionUnlocked(m.id)?' filled':'');
+      path.appendChild(connector);
+    }
+
+    const card=document.createElement('div');
+    card.className='level-card'+(done?' completed':active?' active':' locked');
+    if(newlyUnlocked.has(m.id)) card.classList.add('just-unlocked');
+    card.style.setProperty('--node-a',m.nodeA);
+    card.style.setProperty('--node-b',m.nodeB);
+    card.style.setProperty('--zz', idx%2===0 ? '-38px':'38px');
+
+    let statusHtml;
+    if(locked){
+      statusHtml=`<span class="level-lock-icon">🔒</span><span>Locked</span>`;
+    }else if(done){
+      statusHtml=`<span class="level-stars-mini">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</span>`;
+    }else{
+      statusHtml=`<span>✨ Ready to play</span>`;
+    }
+
+    card.innerHTML=`
+      <div class="level-node">
+        <span class="level-number">${idx+1}</span>
+        <span>${locked?'🔒':m.icon}</span>
+      </div>
+      <div class="level-info">
+        <div class="level-title">Level ${idx+1} — ${m.name}</div>
+        <div class="level-status">${statusHtml}</div>
+      </div>
+      ${done?'<div class="level-checkmark">✓</div>':''}
+    `;
+
+    if(!locked){
+      card.addEventListener('click',()=>{
+        Audio.play('click');
+        launchMission(m.id);
+      });
+    }
+    path.appendChild(card);
+  });
+
+  // Badges
+  const shelf=document.getElementById('badgesShelf');
+  shelf.innerHTML='';
+  BADGES.forEach(b=>{
+    const earned=state.badges.includes(b.id);
+    const chip=document.createElement('div');
+    chip.className='badge-chip'+(earned?' earned':'');
+    chip.innerHTML=`<span class="badge-icon">${b.icon}</span>${b.name}`;
+    shelf.appendChild(chip);
+  });
+
+  // All done state is handled by the celebration page now.
+}
+
+function goToMap(){Audio.play('click');showScreen('screen-map');renderMap()}
+
+/* ═══════════════════════════════════════════════════════
+   MISSION LAUNCHER
+═══════════════════════════════════════════════════════ */
+function launchMission(id){
+  if(!isMissionUnlocked(id)){
+    showToast('🔒 Complete the previous section first to unlock this one.','info',2600);
+    Audio.play('wrong');
+    return;
+  }
+  state.currentMission=id;
+  const m=MISSIONS.find(x=>x.id===id);
+  document.getElementById('missionIconSm').textContent=m.icon;
+  document.getElementById('missionNameSm').textContent=m.name;
+  document.getElementById('screen-mission').style.setProperty('--mission-color',m.color+'44');
+  showScreen('screen-mission');
+  const body=document.getElementById('missionBody');
+  body.innerHTML='<div class="spinner"></div>';
+  setTimeout(()=>{
+    switch(id){
+      case 'school': buildMission1(body);break;
+      case 'studio': buildMission2(body);break;
+      case 'prompt': buildMission3(body);break;
+      case 'lab':    buildMission4(body);break;
+      case 'safety': buildMission5(body);break;
+    }
+  },400);
+}
+
+function setMiniProg(done,total){
+  const pct=Math.round((done/total)*100);
+  document.getElementById('miniProgFill').style.width=pct+'%';
+  document.getElementById('miniProgLabel').textContent=`${done} / ${total}`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DRAG & DROP ENGINE
+═══════════════════════════════════════════════════════ */
+let dragState={el:null,ghost:null,ox:0,oy:0};
+function makeDraggable(el,onDrop){
+  if(el.dataset.draggableBound==='1')return; // prevent duplicate listeners (was causing stuck ghost cards)
+  el.dataset.draggableBound='1';
+  el.classList.add('draggable');
+  el.addEventListener('mousedown',e=>startDrag(e,el,onDrop));
+  el.addEventListener('touchstart',e=>startDrag(e,el,onDrop),{passive:true});
+}
+function startDrag(e,el,onDrop){
+  if(el.classList.contains('used')||el.classList.contains('matched'))return;
+  Audio.play('click');
+  const isTouch=e.touches;
+  const cx=isTouch?e.touches[0].clientX:e.clientX;
+  const cy=isTouch?e.touches[0].clientY:e.clientY;
+  const rect=el.getBoundingClientRect();
+  dragState.ox=cx-rect.left;
+  dragState.oy=cy-rect.top;
+  dragState.el=el;
+  // ghost
+  const ghost=el.cloneNode(true);
+  ghost.classList.add('ghost');
+  ghost.style.width=rect.width+'px';
+  ghost.style.left=(cx-dragState.ox)+'px';
+  ghost.style.top=(cy-dragState.oy)+'px';
+  document.body.appendChild(ghost);
+  dragState.ghost=ghost;
+  el.classList.add('dragging');
+  dragState.onDrop=onDrop;
+  document.addEventListener('mousemove',moveDrag);
+  document.addEventListener('mouseup',endDrag);
+  document.addEventListener('touchmove',moveDrag,{passive:false});
+  document.addEventListener('touchend',endDrag);
+}
+function moveDrag(e){
+  if(!dragState.ghost)return;
+  e.preventDefault&&e.preventDefault();
+  const isTouch=e.touches;
+  const cx=isTouch?e.touches[0].clientX:e.clientX;
+  const cy=isTouch?e.touches[0].clientY:e.clientY;
+  dragState.ghost.style.left=(cx-dragState.ox)+'px';
+  dragState.ghost.style.top=(cy-dragState.oy)+'px';
+  // highlight drop zones
+  document.querySelectorAll('.drop-zone,.sort-zone,.tool-card,.costar-drop,.quality-zone').forEach(z=>{
+    const r=z.getBoundingClientRect();
+    const over=cx>r.left&&cx<r.right&&cy>r.top&&cy<r.bottom;
+    z.classList.toggle('drag-over',over);
+  });
+}
+function endDrag(e){
+  if(!dragState.ghost)return;
+  const isTouch=e.changedTouches;
+  const cx=isTouch?e.changedTouches[0].clientX:e.clientX;
+  const cy=isTouch?e.changedTouches[0].clientY:e.clientY;
+  document.querySelectorAll('.drop-zone,.sort-zone,.tool-card,.costar-drop,.quality-zone').forEach(z=>{
+    z.classList.remove('drag-over');
+    const r=z.getBoundingClientRect();
+    if(cx>r.left&&cx<r.right&&cy>r.top&&cy<r.bottom){
+      if(dragState.onDrop)dragState.onDrop(dragState.el,z);
+    }
+  });
+  dragState.ghost.remove();
+  if(dragState.el)dragState.el.classList.remove('dragging');
+  dragState={el:null,ghost:null,ox:0,oy:0};
+  document.removeEventListener('mousemove',moveDrag);
+  document.removeEventListener('mouseup',endDrag);
+  document.removeEventListener('touchmove',moveDrag);
+  document.removeEventListener('touchend',endDrag);
+}
+
+/* ═══════════════════════════════════════════════════════
+   MISSION 1 — SCHOOL: SORT AI vs NOT AI
+═══════════════════════════════════════════════════════ */
+function buildMission1(body){
+  const items=[
+    {id:'chatgpt',label:'ChatGPT',icon:'💬',isAI:true,reason:'ChatGPT is an AI language model that generates text using machine learning.'},
+    {id:'calc',label:'Calculator',icon:'🔢',isAI:false,reason:'A calculator follows fixed rules (algorithms), not machine learning. It can\'t learn or adapt!'},
+    {id:'gmaps',label:'Google Maps',icon:'🗺️',isAI:true,reason:'Google Maps uses AI to predict traffic, suggest routes, and learn from millions of trips.'},
+    {id:'vacuum',label:'Robot Vacuum',icon:'🤖',isAI:true,reason:'Modern robot vacuums use AI to map rooms, avoid obstacles, and learn cleaning patterns.'},
+    {id:'teacher',label:'Teacher',icon:'👩‍🏫',isAI:false,reason:'Teachers are humans who make creative judgments. AI assists teachers but cannot replace them!'},
+    {id:'selfcar',label:'Self-driving Car',icon:'🚗',isAI:true,reason:'Self-driving cars use AI (computer vision + deep learning) to navigate the real world.'},
+    {id:'spam',label:'Spam Filter',icon:'📧',isAI:true,reason:'Email spam filters use machine learning to recognize and block unwanted messages.'},
+    {id:'toaster',label:'Toaster',icon:'🍞',isAI:false,reason:'A toaster uses a simple timer and heat sensor — no learning, no adaptation. Pure hardware!'},
+  ];
+
+  let sorted={ai:[],notai:[]};
+  let correct=0,total=items.length;
+
+  body.innerHTML=`
+    <div class="mission-instruction">
+      <h2>🏫 The Sorting Challenge</h2>
+      <p>Drag each card into the correct category. <strong>Which ones are AI?</strong><br/>
+      Remember: true AI <em>learns</em> from data — it doesn't just follow fixed rules!</p>
+    </div>
+    <div class="cards-bank" id="m1Bank"></div>
+    <div class="sort-arena">
+      <div class="sort-zone" id="zone-ai" style="--zone-color:var(--teal);border-color:rgba(0,212,200,0.3)">
+        <div class="sort-zone-header">
+          <div class="zone-dot" style="background:var(--teal)"></div>
+          🤖 AI
+        </div>
+        <div class="sort-items" id="items-ai">
+          <span style="color:var(--text2);font-size:13px;width:100%;text-align:center;padding:12px">Drop AI items here</span>
+        </div>
+      </div>
+      <div class="sort-zone" id="zone-notai" style="border-color:rgba(255,145,0,0.3)">
+        <div class="sort-zone-header">
+          <div class="zone-dot" style="background:var(--orange)"></div>
+          🚫 Not AI
+        </div>
+        <div class="sort-items" id="items-notai">
+          <span style="color:var(--text2);font-size:13px;width:100%;text-align:center;padding:12px">Drop non-AI items here</span>
+        </div>
+      </div>
+    </div>
+    <div class="submit-row"><button class="btn btn-primary hidden" id="m1Submit">Check My Answers ✓</button></div>
+  `;
+
+  const bank=document.getElementById('m1Bank');
+  items.forEach(item=>{
+    const card=document.createElement('div');
+    card.className='sort-card draggable';
+    card.id='card-'+item.id;
+    card.dataset.id=item.id;
+    card.innerHTML=`<span class="sort-card-icon">${item.icon}</span><span>${item.label}</span>`;
+    bank.appendChild(card);
+    makeDraggable(card,(el,zone)=>dropM1(el,zone,item,items,sorted));
+  });
+
+  // zones also draggable targets
+  ['zone-ai','zone-notai'].forEach(zid=>{
+    const z=document.getElementById(zid);
+    z.classList.add('sort-zone');
+  });
+
+  setMiniProg(0,total);
+
+  function dropM1(el,zone,item,allItems,sorted){
+    const targetType=zone.id==='zone-ai'||zone.id==='items-ai'?'ai':'notai';
+    const container=document.getElementById('items-'+targetType);
+    // remove placeholder text
+    const ph=container.querySelector('span');
+    if(ph&&ph.style&&!ph.classList.contains('sort-card'))ph.remove();
+    // move card
+    el.style.cursor='default';
+    container.appendChild(el);
+    makeDraggable(el,(e2,z2)=>dropM1(e2,z2,item,allItems,sorted));
+
+    // track
+    ['ai','notai'].forEach(t=>{sorted[t]=sorted[t].filter(x=>x!==item.id)});
+    sorted[targetType].push(item.id);
+    const totalSorted=sorted.ai.length+sorted.notai.length;
+    setMiniProg(totalSorted,total);
+    Audio.play('drop');
+    if(totalSorted===total)document.getElementById('m1Submit').classList.remove('hidden');
+  }
+
+  document.getElementById('m1Submit').addEventListener('click',()=>{
+    Audio.play('complete');
+    let score=0;
+    items.forEach(item=>{
+      const expectedZone=item.isAI?'ai':'notai';
+      const correct2=sorted[expectedZone].includes(item.id);
+      const el=document.getElementById('card-'+item.id);
+      if(el){
+        el.style.border='2px solid '+(correct2?'var(--green)':'var(--red)');
+        el.style.background=correct2?'rgba(0,200,83,0.15)':'rgba(255,82,82,0.15)';
+        if(correct2)score++;
+      }
+    });
+    correct=score;
+
+    // Show explanations
+    setTimeout(()=>{
+      items.forEach(item=>{
+        const el=document.getElementById('card-'+item.id);
+        if(el)el.title=item.reason;
+      });
+      const stars=score>=7?3:score>=5?2:1;
+      completeMission('school',stars,score,total,`You correctly identified ${score} out of ${total} items! AI systems LEARN from data — that's what makes them different from regular software.`);
+    },800);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   MISSION 2 — CREATIVE STUDIO: MATCH SCENARIOS TO TOOLS
+═══════════════════════════════════════════════════════ */
+function buildMission2(body){
+  const tools=[
+    {id:'chatgpt',name:'ChatGPT',icon:'💬',hint:'Best for writing, brainstorming & text generation'},
+    {id:'canva',name:'Canva AI',icon:'🎨',hint:'Best for visual design, posters & presentations'},
+    {id:'copilot',name:'Microsoft Copilot',icon:'🪟',hint:'Best for Office docs, summaries & spreadsheets'},
+    {id:'gemini',name:'Google Gemini',icon:'♊',hint:'Best for research, web queries & lesson planning'},
+    {id:'dalle',name:'DALL-E / Image AI',icon:'🖼️',hint:'Best for generating original images & artwork'},
+  ];
+  const scenarios=[
+    {id:'s1',text:'📊 Summarise a 20-page school inspection report into 5 bullet points',correct:'copilot'},
+    {id:'s2',text:'🎓 Create a differentiated lesson plan for mixed-ability Year 8 students',correct:'gemini'},
+    {id:'s3',text:'✍️ Write engaging feedback comments for 30 student essays',correct:'chatgpt'},
+    {id:'s4',text:'🖼️ Design a colourful classroom poster about growth mindset',correct:'canva'},
+    {id:'s5',text:'🌄 Generate a fantasy illustration for a creative writing class',correct:'dalle'},
+  ];
+
+  let matched=0;
+  body.innerHTML=`
+    <div class="mission-instruction">
+      <h2>🎨 Creative Studio</h2>
+      <p>Drag each <strong>classroom scenario</strong> (left) onto the best <strong>AI tool</strong> (right).<br/>
+      Think about what each AI tool is best known for!</p>
+    </div>
+    <div class="match-layout">
+      <div>
+        <h3>📋 Scenarios</h3>
+        <div class="scenario-list" id="scenList"></div>
+      </div>
+      <div>
+        <h3>🤖 AI Tools</h3>
+        <div class="tool-list" id="toolList"></div>
+      </div>
+    </div>
+  `;
+
+  const scenList=document.getElementById('scenList');
+  const toolList=document.getElementById('toolList');
+  setMiniProg(0,scenarios.length);
+
+  scenarios.forEach(s=>{
+    const card=document.createElement('div');
+    card.className='scenario-card';
+    card.id='sc-'+s.id;
+    card.dataset.correct=s.correct;
+    card.innerHTML=`<span>📌</span>${s.text}`;
+    scenList.appendChild(card);
+    makeDraggable(card,(el,zone)=>dropM2(el,zone,s));
+  });
+
+  tools.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='tool-card drop-zone';
+    card.id='tool-'+t.id;
+    card.dataset.toolId=t.id;
+    card.innerHTML=`
+      <span class="tool-icon">${t.icon}</span>
+      <div class="tool-info">
+        <div class="tool-name">${t.name}</div>
+        <div class="tool-hint">${t.hint}</div>
+      </div>
+      <span class="match-badge" id="mb-${t.id}">✅</span>
+    `;
+    toolList.appendChild(card);
+  });
+
+  function dropM2(el,zone,scenario){
+    const toolId=zone.dataset.toolId||zone.id.replace('tool-','');
+    if(!toolId)return;
+    const isCorrect=toolId===scenario.correct;
+    Audio.play(isCorrect?'correct':'wrong');
+    if(isCorrect){
+      el.classList.add('matched');
+      zone.classList.add('correct-match');
+      document.getElementById('mb-'+toolId).classList.add('show');
+      matched++;
+      setMiniProg(matched,scenarios.length);
+      showToast(`✅ Correct! Great thinking!`,'correct');
+      if(matched===scenarios.length){
+        setTimeout(()=>{
+          const stars=3;
+          completeMission('studio',stars,matched,scenarios.length,'You matched every scenario to the right AI tool! Each AI has its superpower — knowing which to use is key to being an effective AI-augmented teacher.');
+        },600);
+      }
+    }else{
+      zone.classList.add('wrong-match');
+      setTimeout(()=>zone.classList.remove('wrong-match'),600);
+      showToast(`🤔 Not quite! Think about what ${tools.find(t=>t.id===toolId)?.name} specialises in.`,'wrong',3000);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MISSION 3 — PROMPT WORKSHOP: COSTAR
+═══════════════════════════════════════════════════════ */
+function buildMission3(body){
+  const costarParts=[
+    {id:'role',label:'Role',emoji:'🎭',desc:'Act as a Year 9 science teacher'},
+    {id:'context',label:'Context',emoji:'📚',desc:'My class has just finished the unit on ecosystems'},
+    {id:'task',label:'Task',emoji:'📝',desc:'Create a 10-question revision quiz'},
+    {id:'output',label:'Output Format',emoji:'📋',desc:'Numbered list with answer key at the end'},
+    {id:'audience',label:'Audience',emoji:'👥',desc:'for 13–14 year old students'},
+    {id:'constraints',label:'Constraints',emoji:'⛔',desc:'Use simple language, no jargon'},
+  ];
+  const weakPrompt='Write me a quiz.';
+  const strongOutputLines=[
+    '<strong>✅ STRONG PROMPT OUTPUT (Example):</strong>',
+    '—————————————————————',
+    '<em>Acting as a Year 9 science teacher...</em>',
+    '1. What is a food chain? (A) A supermarket queue (B) Energy flow through organisms ✓ (C) A chain of atoms (D) A river system',
+    '2. Which term describes an organism that makes its own food? (A) Consumer (B) Decomposer (C) Producer ✓ (D) Predator',
+    '3. What happens when a species is removed from an ecosystem? ...',
+    '... <em>7 more targeted, age-appropriate questions</em> ...',
+    '<strong>Answer Key:</strong> 1-B, 2-C, 3-[impacts balance] ...',
+    '<em>Generated in correct format for 13–14 year olds ✅</em>'
+  ];
+  const weakOutputLines=[
+    '<strong>❌ WEAK PROMPT OUTPUT:</strong>',
+    '—————————————————————',
+    '1. What is an ecosystem?',
+    '2. What is photosynthesis?',
+    '3. Name a producer.',
+    '4. What is a food web?',
+    '<em>...vague, no age consideration, no format, no difficulty level specified.</em>'
+  ];
+
+  let filled={};
+  let reviewTimer=null;
+  let reviewEndsAt=0;
+
+  body.innerHTML=`
+    <div class="mission-instruction">
+      <h2>✍️ Prompt Workshop</h2>
+      <p>A weak prompt gives weak results! Drag the <strong>COSTAR components</strong> from the bank into the prompt template below.<br/>
+      Then see how the AI output transforms! 🚀</p>
+    </div>
+    <div class="prompt-layout">
+      <div class="prompt-box">
+        <div class="prompt-box-label" style="color:var(--red)">❌ Weak Prompt (Before)</div>
+        <div class="prompt-text" style="color:var(--text2);font-style:italic">"${weakPrompt}"</div>
+      </div>
+      <div class="prompt-box" style="border-color:var(--purple)">
+        <div class="prompt-box-label" style="color:var(--purple)">✏️ Build Your COSTAR Prompt — Drag components in</div>
+        <div class="prompt-text" id="costarPromptDisplay">
+          <span class="costar-drop" id="drop-role" data-part="role">[Role]</span>:
+          <span class="costar-drop" id="drop-context" data-part="context">[Context]</span>.
+          <span class="costar-drop" id="drop-task" data-part="task">[Task]</span>
+          <span class="costar-drop" id="drop-audience" data-part="audience">[Audience]</span>.
+          Format: <span class="costar-drop" id="drop-output" data-part="output">[Output Format]</span>.
+          Note: <span class="costar-drop" id="drop-constraints" data-part="constraints">[Constraints]</span>.
+        </div>
+      </div>
+      <div class="costar-bank" id="costarBank">
+        <div style="width:100%;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">COSTAR Components — drag into the prompt above</div>
+      </div>
+      <div id="outputCompareArea" class="output-compare hidden">
+        <div class="output-box">
+          <div class="output-label" style="color:var(--red)">❌ Before (Weak Prompt)</div>
+          ${weakOutputLines.map(l=>`<p style="margin-bottom:4px">${l}</p>`).join('')}
+        </div>
+        <div class="output-box enhanced">
+          <div class="output-label" style="color:var(--teal)">✅ After (Your COSTAR Prompt)</div>
+          ${strongOutputLines.map(l=>`<p style="margin-bottom:4px">${l}</p>`).join('')}
+        </div>
+      </div>
+      <div class="submit-row" style="flex-direction:column;gap:10px;align-items:center">
+        <div id="m3ReviewTimer" style="font-size:13px;color:var(--text2);text-align:center">Finish the prompt first, then review the weak vs strong output for 30 seconds before moving on.</div>
+        <button class="btn btn-primary hidden" id="m3Submit">Continue to AI Lab →</button>
+      </div>
+    </div>
+  `;
+
+  const bank=document.getElementById('costarBank');
+  costarParts.forEach(part=>{
+    const chip=document.createElement('div');
+    chip.className='costar-chip draggable';
+    chip.id='chip-'+part.id;
+    chip.dataset.partId=part.id;
+    chip.innerHTML=`${part.emoji} <span>${part.label}</span>`;
+    chip.title=part.desc;
+    bank.appendChild(chip);
+    makeDraggable(chip,(el,zone)=>dropM3(el,zone,part));
+  });
+
+  document.querySelectorAll('.costar-drop').forEach(drop=>{
+    drop.style.cursor='pointer';
+  });
+
+  setMiniProg(0,costarParts.length);
+
+  function dropM3(el,zone,part){
+    const targetPart=zone.dataset.part;
+    if(!targetPart)return;
+    if(targetPart!==part.id){
+      showToast(`❌ "${part.label}" doesn't fit here. Look for the matching bracket!`,'wrong',2500);
+      Audio.play('wrong');
+      return;
+    }
+    el.classList.add('used');
+    zone.textContent=part.emoji+' '+part.desc;
+    zone.classList.add('filled');
+    filled[part.id]=true;
+    Audio.play('correct');
+    showToast(`✅ ${part.label} added!`,'correct',1500);
+    const done=Object.keys(filled).length;
+    setMiniProg(done,costarParts.length);
+    if(done===costarParts.length){
+      startReviewCountdown();
+    }
+  }
+
+  document.getElementById('m3Submit').addEventListener('click',()=>{
+    Audio.play('complete');
+    clearInterval(reviewTimer);
+    document.getElementById('m3Submit').classList.add('hidden');
+    completeMission('prompt',3,6,6,'Incredible! You built a complete COSTAR prompt. See how much richer the AI output is? A well-structured prompt is like giving AI a clear briefing — the better the brief, the better the result!');
+  });
+
+  function startReviewCountdown(){
+    const timerEl=document.getElementById('m3ReviewTimer');
+    const btn=document.getElementById('m3Submit');
+    reviewEndsAt=Date.now()+30000;
+    document.getElementById('outputCompareArea').classList.remove('hidden');
+    btn.classList.add('hidden');
+    timerEl.textContent='Review the weak and strong prompt results carefully. The continue button unlocks in 0:30.';
+    reviewTimer=setInterval(()=>{
+      const remaining=Math.max(0,reviewEndsAt-Date.now());
+      const minutes=Math.floor(remaining/60000);
+      const seconds=Math.floor((remaining%60000)/1000).toString().padStart(2,'0');
+      timerEl.textContent=remaining>0
+        ?`Review time remaining: ${minutes}:${seconds}. Compare the weak prompt with the strong prompt before continuing.`
+        :'Review time complete. You can now move forward.';
+      if(remaining<=0){
+        clearInterval(reviewTimer);
+        btn.classList.remove('hidden');
+      }
+    },250);
+  }
+
+}
+
+/* ═══════════════════════════════════════════════════════
+   MISSION 4 — AI LAB: MATCH OUTPUTS TO PROMPT QUALITY
+═══════════════════════════════════════════════════════ */
+function buildMission4(body){
+  const outputs=shuffle([
+    {
+      id:'out-weak',
+      quality:'weak',
+      title:'📄 Output A',
+      icon:'😕',
+      text:'"Here is a lesson on fractions. Fractions are parts of a whole. Example: 1/2 means one out of two. You can add fractions. Teach this to students."',
+    },
+    {
+      id:'out-avg',
+      quality:'average',
+      title:'📄 Output B',
+      icon:'😐',
+      text:'"Lesson: Introduction to Fractions (Grade 4). Learning objective: Students understand what a fraction is. Activity: Use pizza slices to show 1/2, 1/3, 1/4. Include a worksheet with 5 exercises. Duration: 45 minutes."',
+    },
+    {
+      id:'out-strong',
+      quality:'strong',
+      title:'📄 Output C',
+      icon:'🌟',
+      text:'"Grade 4 Fractions Lesson (45 min) | Objective: Compare and order fractions. Warm-up (5 min): Pizza fraction game. Direct instruction (10 min): Visual fraction wall. Group activity (20 min): Fraction cooking challenge — real-world application. Assessment (10 min): Exit ticket. Differentiation: Extension task for advanced learners. Resources: Printable fraction tiles included."',
+    },
+  ]);
+  const qualities=shuffle([
+    {id:'weak',label:'Case A',color:'var(--red)',clue:'Clue: the prompt is extremely brief and missing the role, audience, structure, and success criteria.',why:'No context, no grade level, no format, no objectives specified.'},
+    {id:'average',label:'Case B',color:'var(--star)',clue:'Clue: the prompt adds topic and time, but still leaves out differentiation, assessment, and a clear output structure.',why:'Some detail given, but no differentiation, assessment, or specific structure requested.'},
+    {id:'strong',label:'Case C',color:'var(--green)',clue:'Clue: the prompt names a role, audience, duration, structure, assessment, and differentiation.',why:'Specific role, clear requirements, structured format requested, differentiation mentioned.'},
+  ]);
+
+  let matched=0;
+  body.innerHTML=`
+    <div class="mission-instruction">
+      <h2>🔬 AI Lab — Prompt Quality Test</h2>
+      <p>Below are <strong>3 AI outputs</strong> about teaching fractions. Scan each mystery case to reveal a clue, then drag the matching output card to the tray that best fits the evidence.<br/>
+      The quality of the output always reflects the quality of the prompt, so look for details, structure, and clarity.</p>
+    </div>
+    <div class="lab-layout">
+      <div class="lab-outputs" id="labOutputs"></div>
+      <div class="lab-quality-zones" id="labZones"></div>
+    </div>
+  `;
+
+  const labOutputs=document.getElementById('labOutputs');
+  const labZones=document.getElementById('labZones');
+  setMiniProg(0,3);
+
+  outputs.forEach(out=>{
+    const card=document.createElement('div');
+    card.className='lab-output-card draggable';
+    card.id=out.id;
+    card.dataset.quality=out.quality;
+    card.innerHTML=`<div class="lab-output-title">${out.icon} ${out.title}</div><div class="lab-output-text">"${out.text}"</div>`;
+    labOutputs.appendChild(card);
+    makeDraggable(card,(el,zone)=>dropM4(el,zone,out));
+  });
+
+  qualities.forEach(q=>{
+    const zone=document.createElement('div');
+    zone.className='quality-zone drop-zone';
+    zone.id='qzone-'+q.id;
+    zone.dataset.quality=q.id;
+    zone.innerHTML=`
+      <div class="lab-zone-head">
+        <div class="quality-label" style="color:${q.color}">${q.label}</div>
+        <button class="lab-clue-btn" type="button" onclick="toggleLabClue('${q.id}')">Scan clue</button>
+      </div>
+      <div class="lab-clue" id="labClue-${q.id}">${q.clue}</div>
+      <div class="lab-zone-note">Use the clue, not the label, to choose the best match.</div>
+      <div class="quality-slot" id="qslot-${q.id}">Drop output here</div>
+    `;
+    labZones.appendChild(zone);
+  });
+
+  function dropM4(el,zone,output){
+    const targetQ=zone.dataset.quality;
+    if(!targetQ)return;
+    const isCorrect=targetQ===output.quality;
+    Audio.play(isCorrect?'correct':'wrong');
+    if(isCorrect){
+      const slot=document.getElementById('qslot-'+targetQ);
+      slot.innerHTML='';
+      slot.appendChild(el.cloneNode(true));
+      slot.classList.add('filled-slot');
+      el.style.opacity='0.3';el.style.pointerEvents='none';
+      zone.style.borderColor='var(--green)';
+      matched++;
+      setMiniProg(matched,3);
+      showToast('🎯 Correct match! Great analysis!','correct');
+      if(matched===3){
+        setTimeout(()=>{
+          completeMission('lab',3,3,3,'Excellent! You can now see the direct relationship between prompt quality and output quality. A specific, structured prompt always produces better results. This is the core skill of AI-augmented teaching!');
+        },700);
+      }
+    }else{
+      zone.style.borderColor='var(--red)';
+      setTimeout(()=>zone.style.borderColor='',600);
+      const q=qualities.find(x=>x.id===targetQ);
+      showToast(`🤔 Not quite. Read the prompt carefully: "${q?.prompt}"... does the output match that level of detail?`,'wrong',4000);
+    }
+  }
+}
+
+function toggleLabClue(id){
+  const clue=document.getElementById('labClue-'+id);
+  if(!clue)return;
+  clue.classList.toggle('revealed');
+}
+
+/* ═══════════════════════════════════════════════════════
+   MISSION 5 — SAFETY CENTER: CATCH GOOD PRACTICES
+═══════════════════════════════════════════════════════ */
+function buildMission5(body){
+  const allItems=[
+    {text:'✅ Verify AI outputs before sharing with students',safe:true},
+    {text:'✅ Protect student privacy — never share names with AI',safe:true},
+    {text:'✅ Cite AI assistance when submitting AI-helped work',safe:true},
+    {text:'✅ Review AI-generated lesson plans before teaching',safe:true},
+    {text:'✅ Teach students to fact-check AI responses',safe:true},
+    {text:'✅ Use anonymised data when prompting AI tools',safe:true},
+    {text:'✅ Apply professional judgement over AI suggestions',safe:true},
+    {text:'❌ Upload confidential student data to free AI tools',safe:false},
+    {text:'❌ Share AI-generated work without reviewing it first',safe:false},
+    {text:'❌ Trust AI outputs as 100% factually accurate',safe:false},
+    {text:'❌ Let AI make final decisions about student grades',safe:false},
+    {text:'❌ Use student photos in AI image generators',safe:false},
+    {text:'❌ Submit AI-written content as entirely your own work',safe:false},
+  ];
+
+  let caught=0,missed=0,lives=3;
+  let activeFallers=[];
+  let gameRunning=false;
+  let spawnTimer,difficultyTimer;
+  let speed=8000;
+  let targetCaught=6;
+  let totalShown=0;
+
+  body.innerHTML=`
+    <div class="mission-instruction">
+      <h2>🛡️ Safety Center</h2>
+      <p>Responsible AI practices are falling from the sky! <strong>Click ONLY the ✅ good practices</strong> before they disappear.<br/>
+      Avoid clicking ❌ unsafe behaviors — they'll cost you a life! Catch ${targetCaught} good practices to complete the mission.</p>
+    </div>
+    <div class="safety-hud">
+      <div class="safety-stat">🎯 Caught: <span id="caughtCount" style="color:var(--green)">0</span>/${targetCaught}</div>
+      <div class="safety-stat">❤️ Lives: <div class="safety-lives" id="livesDisplay">❤️❤️❤️</div></div>
+      <div class="safety-stat">⚡ Speed: <span id="speedLabel" style="color:var(--star)">Normal</span></div>
+    </div>
+    <div id="safety-arena"></div>
+  `;
+
+  const arena=document.getElementById('safety-arena');
+  setMiniProg(0,targetCaught);
+  gameRunning=true;
+
+  function updateLives(){
+    const lv=document.getElementById('livesDisplay');
+    if(lv)lv.innerHTML='❤️'.repeat(Math.max(0,lives));
+  }
+
+  function spawnItem(){
+    if(!gameRunning)return;
+    const item=allItems[Math.floor(Math.random()*allItems.length)];
+    const el=document.createElement('div');
+    el.className='falling-item '+(item.safe?'safe':'unsafe');
+    el.innerHTML=item.text;
+    el.style.left=Math.random()*70+'%';
+    el.style.animationDuration=speed+'ms';
+    arena.appendChild(el);
+    totalShown++;
+
+    el.addEventListener('animationend',()=>{
+      if(el.parentNode&&gameRunning){
+        if(item.safe){
+          missed++;
+          showToast('💨 Missed a good practice!','wrong',1500);
+        }
+        el.remove();
+        activeFallers=activeFallers.filter(x=>x!==el);
+      }
+    });
+
+    el.addEventListener('click',()=>{
+      if(!gameRunning)return;
+      if(item.safe){
+        Audio.play('correct');
+        caught++;
+        document.getElementById('caughtCount').textContent=caught;
+        setMiniProg(caught,targetCaught);
+        showToast('✅ Great catch! '+item.text.substring(2),'correct',2000);
+        el.remove();
+        activeFallers=activeFallers.filter(x=>x!==el);
+        if(caught>=targetCaught){endSafety(true)}
+      }else{
+        Audio.play('wrong');
+        lives--;
+        updateLives();
+        el.classList.add('clicked-wrong');
+        showToast('❌ That\'s an unsafe practice! Avoid it!','wrong',2500);
+        setTimeout(()=>el.remove(),500);
+        if(lives<=0){endSafety(false)}
+      }
+    });
+    activeFallers.push(el);
+  }
+
+  // Spawn interval
+  spawnTimer=setInterval(()=>{if(gameRunning)spawnItem()},1800);
+  spawnItem();
+
+  // Speed up over time
+  difficultyTimer=setInterval(()=>{
+    if(!gameRunning)return;
+    speed=Math.max(4000,speed-800);
+    const sl=document.getElementById('speedLabel');
+    if(sl)sl.textContent=speed<5500?'Fast!':speed<6500?'Medium':'Normal';
+  },6000);
+
+  function endSafety(success){
+    gameRunning=false;
+    clearInterval(spawnTimer);
+    clearInterval(difficultyTimer);
+    // clear all falling items
+    arena.innerHTML='';
+    const stars=lives===3?3:lives===2?2:1;
+    const successStars=success?stars:1;
+    setTimeout(()=>{
+      completeMission('safety',successStars,caught,targetCaught,
+        success
+          ?`Outstanding! You caught ${caught} responsible AI practices. You\'re an AI Safety Guardian! These habits protect your students and maintain your professional integrity.`
+          :`You caught ${caught} practices. Remember: always verify AI outputs, protect student data, and maintain professional judgment. Practice makes perfect!`
+      );
+    },600);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MISSION COMPLETE
+═══════════════════════════════════════════════════════ */
+function completeMission(missionId,stars,score,total,message){
+  Audio.play('badge');
+  Confetti.burst();
+
+  // Save
+  state.stars[missionId]=stars;
+  if(!state.badges.includes(missionId))state.badges.push(missionId);
+  state.missionScores[missionId]={score,total,stars};
+  saveState();
+
+  // Show overlay
+  const ov=document.getElementById('completeOverlay');
+  document.getElementById('completeIcon').textContent=MISSIONS.find(m=>m.id===missionId)?.icon||'🎉';
+  document.getElementById('completeTitle').textContent='Mission Complete! '+'⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('completeStars').textContent='⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('completeMessage').innerHTML=`<strong>${score}/${total} correct</strong><br/><br/>${message}`;
+  ov.classList.add('show');
+}
+
+function dismissComplete(){
+  document.getElementById('completeOverlay').classList.remove('show');
+  if(MISSIONS.every(m=>state.stars[m.id]!==undefined)){
+    setTimeout(showCelebration,900);
+  }else{
+    goToMap();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   CELEBRATION
+═══════════════════════════════════════════════════════ */
+function showCelebration(){
+  Audio.play('badge');
+  Confetti.burst();
+  const totalStars=MISSIONS.reduce((a,m)=>a+(state.stars[m.id]||0),0);
+  const maxStars=MISSIONS.length*3;
+  const playerName=(document.getElementById('playerNameInput')?.value.trim()||state.player||'Hero');
+  state.player=playerName;
+  saveState();
+
+  showScreen('screen-results');
+  document.getElementById('celebrationBadge').textContent='🎉';
+  document.getElementById('celebrationTitle').textContent='You finished the AI Journey';
+  document.getElementById('celebrationSubtitle').textContent=`Great work, ${playerName}`;
+  document.getElementById('celebrationMessage').textContent='You explored what AI is, how to prompt it well, how to evaluate outputs, and how to stay responsible while using it. That combination is what makes a strong AI-literate educator.';
+  document.getElementById('celebrationStars').textContent='⭐'.repeat(totalStars)+'☆'.repeat(maxStars-totalStars);
+
+  const stats=document.getElementById('celebrationStats');
+  stats.innerHTML='';
+  [
+    {label:'Total stars',value:`${totalStars}/${maxStars}`},
+    {label:'Missions complete',value:Object.keys(state.stars).length},
+    {label:'AI confidence',value:totalStars>=12?'High':'Growing'}
+  ].forEach(item=>{
+    const chip=document.createElement('div');
+    chip.className='celebration-chip';
+    chip.innerHTML=`<strong>${item.value}</strong> ${item.label}`;
+    stats.appendChild(chip);
+  });
+  setTimeout(()=>Confetti.burst(),800);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+loadState();
+showScreen('screen-register');
+</script>
+</body>
+</html>
